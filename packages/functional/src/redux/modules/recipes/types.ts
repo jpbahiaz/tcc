@@ -4,4 +4,5 @@ export type Recipe = {
 
 export type RecipesState = {
   byId: Record<string, Recipe>;
+  userRecipes: Record<string, string[]>
 };

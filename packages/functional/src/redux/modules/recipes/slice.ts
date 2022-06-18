@@ -3,6 +3,7 @@ import { RecipesState } from "./types";
 
 const initialState: RecipesState = {
   byId: { "uga-id-1": { name: "Receita teste" } },
+  userRecipes: {}
 };
 
 const recipesSlice = createSlice({

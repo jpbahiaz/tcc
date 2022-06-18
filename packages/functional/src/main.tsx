@@ -8,6 +8,7 @@ import store from "./redux/store";
 import { Home } from "./pages/home";
 import { ShowRecipe } from "./pages/recipe/show";
 import { EditRecipe } from "./pages/recipe/edit";
+import { CreateRecipe } from "./pages/recipe/create";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -16,7 +17,7 @@ ReactDOM.render(
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/recipe/create" element={<ShowRecipe />} />
+          <Route path="/recipe/create" element={<CreateRecipe />} />
           <Route path="/recipe/:recipeId" element={<ShowRecipe />} />
           <Route path="/recipe/edit/:recipeId" element={<EditRecipe />} />
         </Routes>

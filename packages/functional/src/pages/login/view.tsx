@@ -10,12 +10,16 @@ export function LoginView({ _io }: IOProps<LoginIO, Props>) {
         <div>Login</div>
         <form style={_io.styles.form} onSubmit={_io.onSubmit}>
           <input
+            style={_io.styles.input}
+            onChange={_io.onFieldChange}
             placeholder="Usuário"
             type="text"
             name="username"
             autoComplete="off"
           />
           <input
+            style={_io.styles.input}
+            onChange={_io.onFieldChange}
             placeholder="Senha"
             type="password"
             name="password"
