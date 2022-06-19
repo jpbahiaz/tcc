@@ -1,57 +1,43 @@
-import { CSSProperties, MouseEvent } from "react";
+import { CSSProperties, MouseEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { selectRecipes } from "../../redux/modules/recipes/selectors";
 import { useAppSelector } from "../../redux/store";
+import { css } from "../../shared/styles";
 
-const styles: Record<string, CSSProperties> = {
-  container: {
-    width: "100vw",
-    height: "100vh",
-    display: "flex",
-    flexFlow: "column",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  recipes: {
-    display: "flex",
-    flexFlow: "column",
-    border: "1px solid white",
-    borderRadius: "5px",
-    padding: "10px",
-    width: "70vw",
-    height: "80vh"
-  },
-  recipe: {
+const styles = {
+  recipe: css({
+    cursor: "pointer",
     display: "flex",
     flexFlow: "row",
     justifyContent: "space-between",
     margin: "15px",
-  },
-  separator: {
+  }),
+  separator: css({
     width: "90%",
     height: "1px",
     // margin: "0 auto",
     background: "white",
     margin: "0 auto"
-  },
-  title: {
+  }),
+  title: css({
     fontSize: "30px"
-  },
-  list: {
+  }),
+  list: css({
+    width: "95%",
     margin: "10px",
     padding: "10px",
     border: "1px solid white",
     borderRadius: "5px",
     overflowY: "auto"
-  },
-  actions: {
+  }),
+  actions: css({
     marginTop: "auto",
     width: "100%"
-  },
-  action: {
+  }),
+  action: css({
     fontSize: "22px",
     width: "100%"
-  }
+  })
 }
 
 export function homeIO() {
@@ -65,7 +51,14 @@ export function homeIO() {
     onCreateRecipe: (e: MouseEvent) => {
       e.preventDefault()
       navigate("/recipe/create")
-      console.log("onCreateRecipe")
+    },
+    onClickRecipe: (recipeId: string) => {
+      navigate("/recipe/" + recipeId)
+    },
+    onEditRecipe: (e: MouseEvent, recipeId: string) => {
+      e.preventDefault()
+      e.stopPropagation()
+      navigate("/recipe/edit/" + recipeId)
     }
   };
 }
