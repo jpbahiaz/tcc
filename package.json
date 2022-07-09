@@ -4,7 +4,7 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "server": "yarn workspace server",
-    "classic": "yarn workspace classic",
+    "halogen": "yarn workspace halogen",
     "functional": "yarn workspace functional"
   },
   "dependencies": {
