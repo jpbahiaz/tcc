@@ -13,17 +13,43 @@ import CSS.Font (fontSize)
 import CSS.Geometry (height, margin, marginBottom, marginLeft, marginRight, marginTop, padding, width)
 import CSS.Overflow (Overflow(..), overflowY)
 import CSS.Size (pct, px)
-import Data.Array (concat, length)
+import Data.Array (concat, fromFoldable, length)
+import Data.Map (values)
 import Data.Maybe (Maybe(..))
-import Data.Recipe (Recipe)
+import Data.Recipe (Recipe, Recipes)
+import Effect.Class (liftEffect)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.CSS (style)
+import Halogen.HTML.Events (onClick)
+import Halogen.Store.Connect (Connected, connect)
+import Halogen.Store.Monad (class MonadStore)
+import Halogen.Store.Select (Selector, selectEq)
+import Service.Navigate (class Navigate, navigate)
+import Service.Route (Route(..))
 import Shared.Html (PageSize(..), page)
 import Shared.Styles (Style, container)
+import Store as Store
 import Type.Proxy (Proxy(..))
+import Web.Event.Event (preventDefault, stopPropagation)
+import Web.UIEvent.MouseEvent (MouseEvent, toEvent)
 
 type Slot p = forall query. H.Slot query Void p
+
+type Input = Unit
+
+data Action
+  = CreateRecipe
+  | ShowRecipe Int MouseEvent 
+  | EditRecipe Int MouseEvent 
+  | Receive (Connected Context Input)
+
+type State = { recipes :: Recipes }
+
+type Context = Recipes
+
+deriveState :: Connected Context Input -> State
+deriveState { context } = { recipes: context }
 
 _home = Proxy :: Proxy "home"
 
@@ -72,38 +98,70 @@ styles =
       width $ pct 100.0
   }
 
-component :: forall q i o m. H.Component q i o m
-component =
-  H.mkComponent
-  { initialState: identity
-  , render
-  , eval: H.mkEval H.defaultEval
-  }
+selectRecipes :: Selector Store.Store Context
+selectRecipes = selectEq _.recipes
 
-render :: forall state action m. state -> H.ComponentHTML action () m
-render _ =
-  HH.div
-    [ container ]
-    [ page Large (Just "Receitas") $
-        HH.div
-          [styles.list]
-          (recipes [ { name: "Bolo do Galba", id: "uga", description: "Descrição Galba" } ])
-    ]
-    where
-          recipes :: forall w i . Array Recipe -> Array (HH.HTML w i)
-          recipes list
-            | length list == 0 = [ HH.strong_ [ HH.text "Você não possui receitas" ] ]
-            | otherwise = 
-              let 
-                recipeList =
-                  map
-                    (\recipe -> 
-                      HH.div
-                        [styles.recipe]
-                        [ HH.div_ [ HH.text recipe.name ]
-                        , HH.button_ [ HH.text "Editar" ]
-                        ]
-                    )
-                    $ list
-              in
-              concat [ recipeList, [ HH.div [styles.separator] [] ] ]
+component :: forall q o m.
+  Navigate m
+  => MonadStore Store.Action Store.Store m
+  => H.Component q Input o m
+component = connect selectRecipes $
+  H.mkComponent
+  { initialState: deriveState
+  , render
+  , eval: H.mkEval $ H.defaultEval
+    { handleAction = handleAction
+    , receive = Just <<< Receive
+    }
+  }
+  where
+    render :: forall slots . State -> H.ComponentHTML Action slots m
+    render state =
+      HH.div
+        [ container ] 
+        [ page Large (Just $ "Receitas") $
+          [
+            HH.div
+              [ styles.list ]
+              (recipes $ fromFoldable $ values state.recipes)
+          , HH.div
+              [ styles.actions ]
+              [ HH.button
+                  [ styles.action, onClick \_ -> CreateRecipe ]
+                  [ HH.text "Criar Receita" ]
+              ]
+          ]
+        ]
+        where
+              recipes :: forall widget . Array Recipe -> Array (HH.HTML widget Action)
+              recipes list
+                | length list == 0 = [ HH.strong_ [ HH.text "Você não possui receitas" ] ]
+                | otherwise = 
+                  let 
+                    recipeList =
+                      map
+                        (\recipe -> 
+                          HH.div
+                            [styles.recipe, onClick $ ShowRecipe recipe.id ]
+                            [ HH.div_ [ HH.text recipe.name ]
+                            , HH.button [ onClick $ EditRecipe recipe.id ] [ HH.text "Editar" ]
+                            ]
+                        )
+                        $ list
+                  in
+                  concat [ recipeList, [ HH.div [styles.separator] [] ] ]
+
+    handleAction :: forall slots output . Action -> H.HalogenM State Action slots output m Unit
+    handleAction =
+      case _ of
+           CreateRecipe -> do
+              navigate Create
+           ShowRecipe id e -> do
+              liftEffect $ preventDefault $ toEvent e
+              navigate $ Show $ show id
+           EditRecipe id e -> do
+              liftEffect $ preventDefault $ toEvent e
+              liftEffect $ stopPropagation $ toEvent e
+              navigate $ Edit $ show id
+           Receive input -> do
+              H.put $ deriveState input

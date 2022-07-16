@@ -28,6 +28,6 @@ routeCodec = root $ sum
   { "Home": noArgs
   , "Login": "login" / noArgs
   , "Edit": "recipe" / "edit" / segment
-  , "Show": "recipe" / segment
+  , "Show": "uga" / segment
   , "Create": "recipe" / "create" / noArgs
   }

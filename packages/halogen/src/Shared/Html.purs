@@ -3,13 +3,14 @@ module Shared.Html where
 import Prelude
 
 import CSS.Border (border, borderRadius, solid)
-import CSS.Color (black)
+import CSS.Color (white)
 import CSS.Common (auto, center)
 import CSS.Display (display, flex)
-import CSS.Flexbox (AlignItemsValue(..), alignItems, flexFlow, nowrap, row)
+import CSS.Flexbox (AlignItemsValue(..), alignItems, column, flexFlow, nowrap)
 import CSS.Geometry (height, padding, width)
 import CSS.Size (px, vh, vw)
 import CSS.Stylesheet (StyleM)
+import Data.Array (concat)
 import Data.Maybe (Maybe(..))
 import Halogen.HTML as HH
 import Halogen.HTML.CSS (style)
@@ -28,13 +29,13 @@ type PageStyle =
 contentStyles :: StyleM Unit
 contentStyles = do
   display flex
-  flexFlow row nowrap
+  flexFlow column nowrap
   alignItems $ AlignItemsValue center
-  border solid (px 1.0) black
+  border solid (px 1.0) white
   borderRadius (px 5.0) (px 5.0) (px 5.0)  (px 5.0)
   padding (px 10.0) (px 10.0) (px 10.0) (px 10.0)
 
-page :: forall w i . PageSize -> Maybe String -> HH.HTML w i -> HH.HTML w i
+page :: forall w i . PageSize -> Maybe String -> Array (HH.HTML w i) -> HH.HTML w i
 page size title html = case size of
   Small ->
     renderPage
@@ -61,15 +62,16 @@ page size title html = case size of
       } title html
 
 
-renderPage :: forall w i . PageStyle -> Maybe String -> HH.HTML w i -> HH.HTML w i
+renderPage :: forall w i . PageStyle -> Maybe String -> Array (HH.HTML w i) -> HH.HTML w i
 renderPage styles title html = 
   HH.div
     [ styles.container ]
     [ HH.div 
         [ styles.content ]
-        [ maybeTitle title
-        , html
-        ]
+        (concat
+          [ [ maybeTitle title ]
+          , html
+          ])
     ]
     where
           maybeTitle :: Maybe String -> HH.HTML w i

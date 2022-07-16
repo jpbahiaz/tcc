@@ -7,14 +7,16 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
+import Halogen.Store.Monad (class MonadStore)
 import Page.Home as Home
 import Page.Login as Login
+import Page.Edit as Edit
+import Page.Show as Show
 import Routing.Duplex (parse)
 import Routing.Hash (getHash)
 import Service.Navigate (class Navigate, navigate)
 import Service.Route (Route(..), routeCodec)
+import Store as Store
 import Web.Event.Event (preventDefault)
 import Web.UIEvent.MouseEvent (toEvent, MouseEvent)
 
@@ -31,12 +33,14 @@ data Action
 type ChildSlots =
   ( home :: Home.Slot Unit
   , login :: Login.Slot Unit
+  , show :: Show.Slot Unit
   )
 
 component
   :: forall i o m
   . MonadEffect m
   => Navigate m
+  => MonadStore Store.Action Store.Store m
   => H.Component Query i o m
 component =
   H.mkComponent
@@ -55,8 +59,8 @@ component =
       Nothing -> HH.h1_ [ HH.text "Oh no! That page wasn't found" ]
       Just route -> case route of
         Home -> HH.slot Home._home unit Home.component unit absurd
-        Edit id -> HH.text $ "Edit " <> id
-        Show id -> HH.text $ "Show " <> id
+        Edit id -> HH.slot Edit._edit unit Edit.component id absurd 
+        Show id -> HH.slot Show._show unit Show.component id absurd 
         Create -> HH.text "Create"
         Login -> HH.slot Login._login unit Login.component unit absurd
 
@@ -77,7 +81,9 @@ handleAction = case _ of
     mRoute <- H.gets _.route
     when ( mRoute /= Just route ) $ navigate route
 
-handleQuery :: forall a o m. Query a -> H.HalogenM State Action ChildSlots o m ( Maybe a )
+handleQuery :: forall a o m.
+  MonadEffect m
+  => Query a -> H.HalogenM State Action ChildSlots o m ( Maybe a )
 handleQuery = case _ of
   -- This is the case that runs every time the brower's hash route changes.
   Navigate route a -> do
@@ -85,18 +91,3 @@ handleQuery = case _ of
     when ( mRoute /= Just route ) $
       H.modify_ _ { route = Just route }
     pure ( Just a )
-
-navbar :: forall a . HH.HTML a Action -> HH.HTML a Action
-navbar html =
-  HH.div_
-  [ HH.ul_
-    [ HH.li_
-      [ HH.a
-        [ HP.href "#"
-        , HE.onClick ( GoTo Home )
-        ]
-        [ HH.text "Home" ]
-      ]
-    ]
-  , html
-  ]
