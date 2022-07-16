@@ -11,6 +11,7 @@ import Halogen.Store.Monad (class MonadStore)
 import Page.Home as Home
 import Page.Login as Login
 import Page.Edit as Edit
+import Page.Create as Create
 import Page.Show as Show
 import Routing.Duplex (parse)
 import Routing.Hash (getHash)
@@ -33,6 +34,8 @@ data Action
 type ChildSlots =
   ( home :: Home.Slot Unit
   , login :: Login.Slot Unit
+  , edit :: Edit.Slot Unit
+  , create :: Create.Slot Unit
   , show :: Show.Slot Unit
   )
 
@@ -61,7 +64,7 @@ component =
         Home -> HH.slot Home._home unit Home.component unit absurd
         Edit id -> HH.slot Edit._edit unit Edit.component id absurd 
         Show id -> HH.slot Show._show unit Show.component id absurd 
-        Create -> HH.text "Create"
+        Create -> HH.slot Create._create unit Create.component unit absurd 
         Login -> HH.slot Login._login unit Login.component unit absurd
 
 handleAction

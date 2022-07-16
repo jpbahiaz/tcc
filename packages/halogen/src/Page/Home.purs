@@ -141,15 +141,17 @@ component = connect selectRecipes $
                     recipeList =
                       map
                         (\recipe -> 
-                          HH.div
-                            [styles.recipe, onClick $ ShowRecipe recipe.id ]
-                            [ HH.div_ [ HH.text recipe.name ]
-                            , HH.button [ onClick $ EditRecipe recipe.id ] [ HH.text "Editar" ]
-                            ]
+                          [ HH.div
+                              [styles.recipe, onClick $ ShowRecipe recipe.id ]
+                              [ HH.div_ [ HH.text recipe.name ]
+                              , HH.button [ onClick $ EditRecipe recipe.id ] [ HH.text "Editar" ]
+                              ]
+                          , HH.div [styles.separator] [] 
+                          ]
                         )
                         $ list
                   in
-                  concat [ recipeList, [ HH.div [styles.separator] [] ] ]
+                  concat recipeList
 
     handleAction :: forall slots output . Action -> H.HalogenM State Action slots output m Unit
     handleAction =
